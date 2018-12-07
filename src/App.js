@@ -1,26 +1,46 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import Navbar from './components/Navbar'
+import PlayerCard from './components/PlayerCard';
 
-class App extends Component {
+import NBA from 'nba'
+
+class App extends React.Component {
+  state = {
+    players: []
+  }
+  _searchForPlayer = name => {
+    const playerInfo = NBA.findPlayer(name)
+    if (playerInfo) {
+      const {playerId} = playerInfo
+      NBA.stats.playerInfo({
+        PlayerID: playerId
+      })
+      .then(info => {
+        const {displayFirstLast, height, weight, jersey} = info.commonPlayerInfo[0]
+        const newPlayer = {
+          playerId, displayFirstLast, height, weight, jersey
+        }
+        this.setState({
+          players: [...this.state.players, newPlayer]
+        })
+        // here
+      })
+      .catch(err => {
+        console.log(err)
+      })
+    }
+  }
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-        </header>
-      </div>
+      <>
+        <Navbar _searchForPlayer={this._searchForPlayer} />
+
+        {this.state.players.length > 0 && this.state.players.map(player => 
+        <PlayerCard 
+          key={player.playerId} 
+          {...player} 
+        />)}
+      </>
     );
   }
 }
